@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+
+@keyframes equalizer {
+  0% { transform: scaleY(0.7); }
+  50% { transform: scaleY(1.5); }
+  100% { transform: scaleY(0.7); }
+}
+
+
+*{
+  font-family: 'Baloo 2', cursive;
+}
+
+.white-glow-shadow{
+  text-shadow: 0 0 20px white;
+}
+
+.custom-font{
+  font-family: 'Baloo 2', cursive;
+}
