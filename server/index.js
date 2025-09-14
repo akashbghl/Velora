@@ -5,6 +5,7 @@ import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import cookieParser from 'cookie-parser';
 import indexRoutes from './routes/indexRoutes.js'
+import assistantRoutes from './routes/assistantRoutes.js';
 
 const app = express();
 dotenv.config();
@@ -17,6 +18,7 @@ app.use(cors({
 })); 
 
 app.use('/auth', authRoutes);
+app.use('/assistant',assistantRoutes);
 app.use('/indexRoutes',indexRoutes);
 app.get('/',(req,res)=>{
     res.send('Server Testing Route')

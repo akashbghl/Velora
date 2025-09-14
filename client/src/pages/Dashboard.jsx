@@ -5,8 +5,87 @@ import { AiOutlineSend } from "react-icons/ai";
 import { AuthContext } from "../AuthContext";
 import Loading from "../components/Loading";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import Vapi from '@vapi-ai/web';
 
 function Dashboard() {
+  const [publickey, setPublickey] = useState("");
+  const [assistantId, setAssistantId] = useState("");
+
+  const fetchAssistantCredentials = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/assistant");
+      const { publickey, assistantId } = res.data;
+      setPublickey(publickey);
+      setAssistantId(assistantId);
+    } catch (error) {
+      console.error("Error fetching assistant credentials:", error);
+    }
+  }
+
+  const vapi = new Vapi(publickey);
+  
+  useEffect(() => {
+    fetchAssistantCredentials();
+    // Call started
+    vapi.on("call-start", () => {
+      console.log("Call has started");
+    });
+
+    // Call ended
+    vapi.on("call-end", () => {
+      console.log("Call has stopped");
+    });
+
+    // Speech started
+    vapi.on("speech-start", () => {
+      console.log("Speech has started");
+    });
+
+    // Speech ended
+    vapi.on("speech-end", () => {
+      console.log("Speech has ended");
+    });
+
+    // User speech transcription
+    vapi.on("speech", (event) => {
+      console.log("User said:", event.text);
+      setMessages((prev) => [...prev, { role: "user", content: event.text }]);
+    });
+
+    // Assistant messages
+    vapi.on("message", (message) => {
+      console.log("Assistant:", message);
+      setMessages((prev) => [
+        ...prev,
+        { role: message.role || "assistant", content: message.transcript },
+      ]);
+    });
+
+    // Volume (optional: could show live mic/assistant level indicator)
+    vapi.on("volume-level", (volume) => {
+      console.log(`Assistant volume level: ${volume}`);
+    });
+  }, []);
+
+  // Start assistant
+  async function startAssistant() {
+    try {
+      const res = await axios.get("http://localhost:5000/assistant");
+      const { assistantId } = res.data;
+      await vapi.start(assistantId);
+      console.log("Assistant started ✅");
+    } catch (error) {
+      console.error("Error starting assistant:", error);
+    }
+  }
+
+  // Stop assistant
+  function stopAssistant() {
+    vapi.stop();
+    console.log("Assistant stopped ⏹️");
+  }
+
   const { valid, user, loading } = useContext(AuthContext);
   const [listening, setListening] = useState(false);
   const [userChat, setUserChat] = useState("");
@@ -17,6 +96,8 @@ function Dashboard() {
 
 
   const handleListeningState = () => {
+    if (!listening) startAssistant();
+    else stopAssistant();
     setListening((prev) => !prev);
   };
 
