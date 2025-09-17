@@ -8,6 +8,9 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Vapi from "@vapi-ai/web";
 import { toast } from "react-toastify";
+import { CardDemo } from "../components/Card";
+import Iridescence from "@/components/Iridescence";
+import LiquidEther from "@/components/LiquidEther";
 
 function Dashboard() {
   const { valid, user, loading } = useContext(AuthContext);
@@ -57,10 +60,18 @@ function Dashboard() {
 
     vapi.on("message", (message) => {
       console.log("Assistant:", message);
-      setChatHistory((prev) => [
-        ...prev,
-        { sender: "assistant", text: message.transcript },
-      ]);
+      if (message.role === 'assistant') {
+        setChatHistory((prev) => [
+          ...prev,
+          { sender: "assistant", text: message.transcript },
+        ]);
+      } else
+        setChatHistory((prev) => [
+          ...prev,
+          { sender: "user", text: message.transcript },
+        ]);
+
+
     });
 
     vapi.on("volume-level", (volume) => {
@@ -105,7 +116,6 @@ function Dashboard() {
   };
 
   const handleSend = () => {
-    toast.info("Voice input is more fun! Click the mic icon to chat.")
     if (!userChat.trim()) return;
     setChatHistory((prev) => [...prev, { sender: "user", text: userChat }]);
     setUserChat("");
@@ -114,8 +124,27 @@ function Dashboard() {
   if (loading) return <Loading />;
 
   return (
-    <div className="relative flex flex-col items-center min-h-screen bg-gradient-to-b from-black via-purple-600 to-black text-white">
+    <div className="relative flex flex-col items-center min-h-screen text-white">
       {/* Header */}
+      <div className="absolute top-0 left-0 w-full h-full -z-10 bg-gradient-to-t from-black via-violet-500 to-black">
+        <LiquidEther
+          colors={['#5227FF', '#FF9FFC', '#B19EEF']}
+          mouseForce={20}
+          cursorSize={100}
+          isViscous={false}
+          viscous={30}
+          iterationsViscous={32}
+          iterationsPoisson={32}
+          resolution={0.5}
+          isBounce={false}
+          autoDemo={true}
+          autoSpeed={0.5}
+          autoIntensity={2.2}
+          takeoverDuration={0.25}
+          autoResumeDelay={3000}
+          autoRampDuration={0.6}
+        />
+      </div>
       <div className="flex gap-3 mt-[2%]">
         <FaRobot className="text-3xl" />
         <p className="text-2xl font-bold">Velora - Your AI Friend</p>
@@ -124,7 +153,7 @@ function Dashboard() {
       {/* Robot Icon + Pulse */}
       <div className="relative flex items-center justify-center">
         {listening && (
-          <div className="absolute w-30 h-30 mt-[60px] rounded-full bg-pink-300 opacity-50 animate-ping"></div>
+          <div className="absolute z-1  w-30 h-30 mt-[60px] rounded-full bg-pink-300 opacity-50 animate-ping"></div>
         )}
         <div className="p-5 rounded-full mt-[60px] bg-white/20 shadow-2xl shadow-violet-700">
           <FaRobot className="text-6xl text-pink-200" />
@@ -197,7 +226,7 @@ function Dashboard() {
       </div>
 
       {/* Chat Box */}
-      <div className="border-2 rounded-md pt-4 px-2 mt-6 w-[90%] md:w-[520px] h-[300px] overflow-y-auto">
+      <div className="bg-sky-500/10 border-2 rounded-md pt-4 px-2 mt-6 w-[90%] md:w-[520px] h-[300px] overflow-y-auto">
         {chatHistory.length === 0 ? (
           <p className="text-gray-300 text-center">Start chatting...</p>
         ) : (
@@ -205,8 +234,8 @@ function Dashboard() {
             <p
               key={i}
               className={`my-1 ${msg.sender === "user"
-                  ? "text-right text-blue-300 px-2 w-fit ml-auto"
-                  : "text-left text-green-300"
+                ? "bg-violet-400/20 rounded-full text-right text-blue-300 px-4 w-fit ml-auto"
+                : "bg-gray-700/40 rounded-md px-2 text-left text-green-300"
                 }`}
             >
               {msg.text}
