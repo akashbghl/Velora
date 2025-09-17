@@ -1,11 +1,13 @@
-import React, { useState , useEffect } from 'react';
+import React, { useState , useEffect, useContext } from 'react';
 import axios from 'axios';
 import ErrorBox from './ErrorBox';
 import {useNavigate} from 'react-router-dom'
-
+import { toast } from 'react-toastify';
+import { AuthContext } from '../AuthContext';
 
 
 const NeonLogin = () => {
+  const{setValid ,setUser } = useContext(AuthContext);
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error,setError] = useState('');
   const[loading,setLoading] = useState(false);
@@ -21,7 +23,9 @@ const NeonLogin = () => {
     setLoading(true);
     try {
       const res = await axios.post('http://localhost:5000/auth/login',formData,{withCredentials:true});
-      alert(res.data.message);
+      setValid(true);
+      setUser(res.data.user);
+      toast.success(res.data.message);
       navigate('/dashboard');
     } catch (error) {
       setError(error.response?.data?.message || 'Some Error Occured !');

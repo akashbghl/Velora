@@ -26,6 +26,7 @@ const Navbar = () => {
     const res = await axios.get('http://localhost:5000/auth/logout',{withCredentials: true});
     setValid(false);
     setUser({});
+    navigate('/');
   } catch (error) {
     console.error(error);
     alert(error.response?.data?.message);

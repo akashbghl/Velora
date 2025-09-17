@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useRef } from "react";
 import { FaRobot } from "react-icons/fa6";
 import { MdStop, MdKeyboardVoice } from "react-icons/md";
 import { AiOutlineSend } from "react-icons/ai";
@@ -6,74 +6,84 @@ import { AuthContext } from "../AuthContext";
 import Loading from "../components/Loading";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import Vapi from '@vapi-ai/web';
+import Vapi from "@vapi-ai/web";
+import { toast } from "react-toastify";
 
 function Dashboard() {
+  const { valid, user, loading } = useContext(AuthContext);
+  const [listening, setListening] = useState(false);
+  const [userChat, setUserChat] = useState("");
+  const [chatHistory, setChatHistory] = useState([]);
   const [publickey, setPublickey] = useState("");
   const [assistantId, setAssistantId] = useState("");
+  const vapiRef = useRef(null);
+  const navigate = useNavigate();
 
+  useEffect(() => {
+    if (!loading && !valid) {
+      navigate("/login");
+    }
+  }, [loading, valid, navigate]);
+
+
+  // Fetch credentials from backend
   const fetchAssistantCredentials = async () => {
     try {
       const res = await axios.get("http://localhost:5000/assistant");
       const { publickey, assistantId } = res.data;
       setPublickey(publickey);
       setAssistantId(assistantId);
+      vapiRef.current = new Vapi(publickey); // initialize here
+      setupVapiListeners(vapiRef.current);
     } catch (error) {
       console.error("Error fetching assistant credentials:", error);
     }
-  }
+  };
 
-  const vapi = new Vapi(publickey);
-  
-  useEffect(() => {
-    fetchAssistantCredentials();
-    // Call started
-    vapi.on("call-start", () => {
-      console.log("Call has started");
-    });
+  // Setup Vapi event listeners
+  const setupVapiListeners = (vapi) => {
+    if (!vapi) return;
 
-    // Call ended
-    vapi.on("call-end", () => {
-      console.log("Call has stopped");
-    });
+    vapi.on("call-start", () => console.log("Call has started"));
+    vapi.on("call-end", () => console.log("Call has stopped"));
 
-    // Speech started
-    vapi.on("speech-start", () => {
-      console.log("Speech has started");
-    });
+    vapi.on("speech-start", () => console.log("Speech has started"));
+    vapi.on("speech-end", () => console.log("Speech has ended"));
 
-    // Speech ended
-    vapi.on("speech-end", () => {
-      console.log("Speech has ended");
-    });
-
-    // User speech transcription
     vapi.on("speech", (event) => {
       console.log("User said:", event.text);
-      setMessages((prev) => [...prev, { role: "user", content: event.text }]);
+      setChatHistory((prev) => [...prev, { sender: "user", text: event.text }]);
     });
 
-    // Assistant messages
     vapi.on("message", (message) => {
       console.log("Assistant:", message);
-      setMessages((prev) => [
+      setChatHistory((prev) => [
         ...prev,
-        { role: message.role || "assistant", content: message.transcript },
+        { sender: "assistant", text: message.transcript },
       ]);
     });
 
-    // Volume (optional: could show live mic/assistant level indicator)
     vapi.on("volume-level", (volume) => {
       console.log(`Assistant volume level: ${volume}`);
     });
+  };
+
+  useEffect(() => {
+    fetchAssistantCredentials();
+
+    return () => {
+      if (vapiRef.current) {
+        vapiRef.current.removeAllListeners();
+        vapiRef.current.stop();
+      }
+    };
   }, []);
 
   // Start assistant
   async function startAssistant() {
     try {
-      const res = await axios.get("http://localhost:5000/assistant");
-      const { assistantId } = res.data;
-      await vapi.start(assistantId);
+      if (!vapiRef.current) return;
+      await vapiRef.current.start(assistantId);
       console.log("Assistant started ✅");
     } catch (error) {
       console.error("Error starting assistant:", error);
@@ -82,18 +92,11 @@ function Dashboard() {
 
   // Stop assistant
   function stopAssistant() {
-    vapi.stop();
-    console.log("Assistant stopped ⏹️");
+    if (vapiRef.current) {
+      vapiRef.current.stop();
+      console.log("Assistant stopped ⏹️");
+    }
   }
-
-  const { valid, user, loading } = useContext(AuthContext);
-  const [listening, setListening] = useState(false);
-  const [userChat, setUserChat] = useState("");
-  const [chatHistory, setChatHistory] = useState([]);
-  const navigate = useNavigate();
-
-    if (!loading && !valid) navigate("/login");
-
 
   const handleListeningState = () => {
     if (!listening) startAssistant();
@@ -102,6 +105,7 @@ function Dashboard() {
   };
 
   const handleSend = () => {
+    toast.info("Voice input is more fun! Click the mic icon to chat.")
     if (!userChat.trim()) return;
     setChatHistory((prev) => [...prev, { sender: "user", text: userChat }]);
     setUserChat("");
@@ -175,8 +179,8 @@ function Dashboard() {
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 handleSend();
-              
-              }}}
+              }
+            }}
             onChange={(e) => setUserChat(e.target.value)}
             placeholder="Type anything you want to talk about"
             className="w-[200px] md:w-[400px] px-4 outline-0"
@@ -184,7 +188,7 @@ function Dashboard() {
           <button
             type="submit"
             aria-label="Send Message"
-            className="mr-2 cursor-pointer border-l-1 border-gray-300 px-2"
+            className="mr-2 cursor-pointer border-l px-2"
             onClick={handleSend}
           >
             <AiOutlineSend />
@@ -200,11 +204,10 @@ function Dashboard() {
           chatHistory.map((msg, i) => (
             <p
               key={i}
-              className={`my-1 ${
-                msg.sender === "user"
+              className={`my-1 ${msg.sender === "user"
                   ? "text-right text-blue-300 px-2 w-fit ml-auto"
                   : "text-left text-green-300"
-              }`}
+                }`}
             >
               {msg.text}
             </p>
