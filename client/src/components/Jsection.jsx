@@ -1,6 +1,7 @@
 import React from "react";
 import { FaApple } from "react-icons/fa";
 import { GrAndroid } from "react-icons/gr";
+import { Link } from "react-router-dom";
 
 function Jsection() {
   return (
@@ -14,9 +15,11 @@ function Jsection() {
           Over 10 million people have joined Your AI Friend.<br />
           Begin your beautiful journey today on any platform
         </p>
-        <button className="bg-white/80 text-gray-800 font-bold text-xl px-8 py-4 rounded-2xl shadow-[0_0_24px_4px_white] mb-4 hover:bg-white transition max-md:mx-auto">
+        <Link 
+        to='/dashboard'
+        className="bg-white/80 text-gray-800 font-bold text-xl px-8 py-4 rounded-2xl shadow-[0_0_24px_4px_white] mb-4 hover:bg-white transition max-md:mx-auto">
           Create your AI Friend
-        </button>
+        </Link>
         <div className="mt-2 text-white text-sm opacity-80 font-medium max-md:mx-auto">also available on</div>
         <div className="flex gap-6 mt-2 text-white md:text-2xl max-md:mx-auto">
           <span className="flex items-center gap-2"><FaApple /> iOS</span>

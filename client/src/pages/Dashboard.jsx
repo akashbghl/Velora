@@ -7,9 +7,6 @@ import Loading from "../components/Loading";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Vapi from "@vapi-ai/web";
-import { toast } from "react-toastify";
-import { CardDemo } from "../components/Card";
-import Iridescence from "@/components/Iridescence";
 import LiquidEther from "@/components/LiquidEther";
 
 function Dashboard() {
