@@ -12,6 +12,7 @@ import LiquidEther from "@/components/LiquidEther";
 function Dashboard() {
   const { valid, user, loading } = useContext(AuthContext);
   const [listening, setListening] = useState(false);
+  const [connecting,setConnecting] = useState(false);
   const [userChat, setUserChat] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
   const [publickey, setPublickey] = useState("");
@@ -44,8 +45,14 @@ function Dashboard() {
   const setupVapiListeners = (vapi) => {
     if (!vapi) return;
 
-    vapi.on("call-start", () => console.log("Call has started"));
-    vapi.on("call-end", () => console.log("Call has stopped"));
+    vapi.on("call-start", () => {
+      setConnecting(false);
+      setListening(true);
+      console.log("Call has started")});
+    vapi.on("call-end", () => {
+      setConnecting(false);
+      setListening(false);
+      console.log("Call has stopped")});
 
     vapi.on("speech-start", () => console.log("Speech has started"));
     vapi.on("speech-end", () => console.log("Speech has ended"));
@@ -91,6 +98,7 @@ function Dashboard() {
   async function startAssistant() {
     try {
       if (!vapiRef.current) return;
+      setConnecting(true);
       await vapiRef.current.start(assistantId);
       console.log("Assistant started ✅");
     } catch (error) {
@@ -102,14 +110,20 @@ function Dashboard() {
   function stopAssistant() {
     if (vapiRef.current) {
       vapiRef.current.stop();
+      setListening(false);
+      setConnecting(false);
       console.log("Assistant stopped ⏹️");
     }
   }
 
-  const handleListeningState = () => {
-    if (!listening) startAssistant();
-    else stopAssistant();
-    setListening((prev) => !prev);
+  const handleListeningState = async() => {
+    try {
+      if (!listening) await startAssistant();
+      else stopAssistant();
+      setListening((prev) => !prev);
+    } catch (error) {
+      
+    }
   };
 
   const handleSend = () => {
@@ -152,13 +166,16 @@ function Dashboard() {
         {listening && (
           <div className="absolute z-1  w-30 h-30 mt-[60px] rounded-full bg-pink-300 opacity-50 animate-ping"></div>
         )}
-        <div className="p-5 rounded-full mt-[60px] bg-white/20 shadow-2xl shadow-violet-700">
-          <FaRobot className="text-6xl text-pink-200" />
+        <div className="p-2 rounded-full mt-[60px] bg-white/20 shadow-2xl shadow-violet-700">
+          <img src="/veloraAvatar.webp" alt="velora" className="h-24 w-24 rounded-full"/>
         </div>
       </div>
 
       {/* Listening Animation */}
-      {listening ? (
+      {connecting?(
+        <p className="mt-16 font-semibold text-yellow-300 text-lg animate-caret-blink">Connecting...</p>
+      ):
+      listening ? (
         <div className="flex flex-col items-center mt-16 transition-all">
           <div className="flex items-end gap-1 h-8">
             {[...Array(12)].map((_, i) => (
