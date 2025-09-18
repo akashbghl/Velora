@@ -4,6 +4,7 @@ import Footer from '../components/Footer'
 import Hero from '../components/Hero'
 import Jsection from '../components/Jsection'
 import Msection from '../components/Msection'
+import PricingSection from '@/components/ui/PricingSection'
 
 function Home() {
     return (
@@ -12,6 +13,7 @@ function Home() {
             <Msection />
             <Faq />
             <Jsection />
+            <PricingSection/>
             <Footer />
         </div>
     )

@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState, useRef } from "react";
 import { FaRobot } from "react-icons/fa6";
-import { MdStop, MdKeyboardVoice } from "react-icons/md";
+import { MdStop, MdKeyboardVoice, MdCall } from "react-icons/md";
 import { AiOutlineSend } from "react-icons/ai";
 import { AuthContext } from "../AuthContext";
 import Loading from "../components/Loading";
@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Vapi from "@vapi-ai/web";
 import LiquidEther from "@/components/LiquidEther";
+import { toast } from "react-toastify";
 
 function Dashboard() {
   const { valid, user, loading } = useContext(AuthContext);
@@ -110,6 +111,7 @@ function Dashboard() {
   function stopAssistant() {
     if (vapiRef.current) {
       vapiRef.current.stop();
+      toast('Call Disconnected !');
       setListening(false);
       setConnecting(false);
       console.log("Assistant stopped ⏹️");
@@ -208,7 +210,7 @@ function Dashboard() {
           onClick={handleListeningState}
         >
           {!listening ? (
-            <MdKeyboardVoice className="text-[42px] rounded-full bg-white/50 text-white cursor-pointer hover:bg-white/60 p-2" />
+            <MdCall className="text-[42px] rounded-full bg-white/50 text-white cursor-pointer hover:bg-white/60 p-2" />
           ) : (
             <MdStop className="text-[42px] rounded-full bg-red-500 text-white cursor-pointer p-2" />
           )}
