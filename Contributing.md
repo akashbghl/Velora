@@ -1,4 +1,4 @@
-# Contributing to CrossPostHub
+# Contributing to Velora
 
 Thank you for your interest in contributing to **Velora**! 🚀
 
