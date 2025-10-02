@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState, useRef } from "react";
+import { useContext, useEffect, useState, useRef, memo, useMemo } from "react";
 import { FaRobot } from "react-icons/fa6";
 import { MdStop, MdKeyboardVoice, MdCall } from "react-icons/md";
 import { AiOutlineSend } from "react-icons/ai";
@@ -10,10 +10,12 @@ import Vapi from "@vapi-ai/web";
 import LiquidEther from "@/components/LiquidEther";
 import { toast } from "react-toastify";
 
+const MemoizedLiquidEther = memo(LiquidEther);
+
 function Dashboard() {
   const { valid, user, loading } = useContext(AuthContext);
   const [listening, setListening] = useState(false);
-  const [connecting,setConnecting] = useState(false);
+  const [connecting, setConnecting] = useState(false);
   const [userChat, setUserChat] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
   const [publickey, setPublickey] = useState("");
@@ -26,6 +28,24 @@ function Dashboard() {
       navigate("/login");
     }
   }, [loading, valid, navigate]);
+
+  const liquidEtherProps = useMemo(() => ({
+    colors: ['#5227FF', '#FF9FFC', '#B19EEF'],
+    mouseForce: 20,
+    cursorSize: 100,
+    isViscous: false,
+    viscous: 30,
+    iterationsViscous: 32,
+    iterationsPoisson: 32,
+    resolution: 0.5,
+    isBounce: false,
+    autoDemo: true,
+    autoSpeed: 0.5,
+    autoIntensity: 2.2,
+    takeoverDuration: 0.25,
+    autoResumeDelay: 3000,
+    autoRampDuration: 0.6
+  }), []);
 
 
   // Fetch credentials from backend
@@ -49,11 +69,13 @@ function Dashboard() {
     vapi.on("call-start", () => {
       setConnecting(false);
       setListening(true);
-      console.log("Call has started")});
+      console.log("Call has started")
+    });
     vapi.on("call-end", () => {
       setConnecting(false);
       setListening(false);
-      console.log("Call has stopped")});
+      console.log("Call has stopped")
+    });
 
     vapi.on("speech-start", () => console.log("Speech has started"));
     vapi.on("speech-end", () => console.log("Speech has ended"));
@@ -118,13 +140,13 @@ function Dashboard() {
     }
   }
 
-  const handleListeningState = async() => {
+  const handleListeningState = async () => {
     try {
       if (!listening) await startAssistant();
       else stopAssistant();
       setListening((prev) => !prev);
     } catch (error) {
-      
+
     }
   };
 
@@ -134,29 +156,13 @@ function Dashboard() {
     setUserChat("");
   };
 
-  if (loading) return <Loading />;
+  if (loading) return <div className="fixed top-[50%] left-[50%]"><Loading /></div>;
 
   return (
     <div className="relative flex flex-col items-center min-h-screen text-white">
       {/* Header */}
       <div className="absolute top-0 left-0 w-full h-full -z-10 bg-gradient-to-t from-black via-violet-500 to-black">
-        <LiquidEther
-          colors={['#5227FF', '#FF9FFC', '#B19EEF']}
-          mouseForce={20}
-          cursorSize={100}
-          isViscous={false}
-          viscous={30}
-          iterationsViscous={32}
-          iterationsPoisson={32}
-          resolution={0.5}
-          isBounce={false}
-          autoDemo={true}
-          autoSpeed={0.5}
-          autoIntensity={2.2}
-          takeoverDuration={0.25}
-          autoResumeDelay={3000}
-          autoRampDuration={0.6}
-        />
+        <MemoizedLiquidEther {...liquidEtherProps}/>
       </div>
       <div className="flex gap-3 mt-[2%]">
         <FaRobot className="text-3xl" />
@@ -169,35 +175,35 @@ function Dashboard() {
           <div className="absolute z-1  w-30 h-30 mt-[60px] rounded-full bg-pink-300 opacity-50 animate-ping"></div>
         )}
         <div className="p-2 rounded-full mt-[60px] bg-white/20 shadow-2xl shadow-violet-700">
-          <img src="/veloraAvatar.webp" alt="velora" className="h-24 w-24 rounded-full"/>
+          <img src="/veloraAvatar.webp" alt="velora" className="h-24 w-24 rounded-full" />
         </div>
       </div>
 
       {/* Listening Animation */}
-      {connecting?(
-        <p className="mt-16 font-semibold text-yellow-300 text-lg animate-caret-blink">Connecting...</p>
-      ):
-      listening ? (
-        <div className="flex flex-col items-center mt-16 transition-all">
-          <div className="flex items-end gap-1 h-8">
-            {[...Array(12)].map((_, i) => (
-              <div
-                key={i}
-                className="w-[5px] bg-gradient-to-t from-blue-500 to-cyan-300 rounded-full animate-pulse"
-                style={{
-                  height: `${Math.random() * 100}%`,
-                  transformOrigin: "bottom",
-                  animation: `equalizer 0.6s ease-in-out infinite alternate`,
-                  animationDelay: `${i * 0.1}s`,
-                }}
-              />
-            ))}
+      {connecting ? (
+        <p className="mt-16 font-semibold text-yellow-300 text-lg">Connecting...</p>
+      ) :
+        listening ? (
+          <div className="flex flex-col items-center mt-16 transition-all">
+            <div className="flex items-end gap-1 h-8">
+              {[...Array(12)].map((_, i) => (
+                <div
+                  key={i}
+                  className="w-[5px] bg-gradient-to-t from-blue-500 to-cyan-300 rounded-full animate-pulse"
+                  style={{
+                    height: `${Math.random() * 100}%`,
+                    transformOrigin: "bottom",
+                    animation: `equalizer 0.6s ease-in-out infinite alternate`,
+                    animationDelay: `${i * 0.1}s`,
+                  }}
+                />
+              ))}
+            </div>
+            <p className="mt-2 font-semibold text-white">I'm listening...</p>
           </div>
-          <p className="mt-2 font-semibold text-white">I'm listening...</p>
-        </div>
-      ) : (
-        <p className="mt-20 text-2xl font-bold text-blue-300">------------</p>
-      )}
+        ) : (
+          <p className="mt-20 text-2xl font-bold text-blue-300">------------</p>
+        )}
 
       <p className={`py-2 ${!listening ? "mt-4" : ""}`}>
         Ready to Chat Naturally !
@@ -209,11 +215,19 @@ function Dashboard() {
           aria-label={listening ? "Stop Listening" : "Start Listening"}
           onClick={handleListeningState}
         >
-          {!listening ? (
-            <MdCall className="text-[42px] rounded-full bg-white/50 text-white cursor-pointer hover:bg-white/60 p-2" />
-          ) : (
-            <MdStop className="text-[42px] rounded-full bg-red-500 text-white cursor-pointer p-2" />
-          )}
+          {connecting ?
+            (
+              <MdCall
+
+                className="text-[42px] rounded-full bg-white/50 text-gray-500 cursor-pointer hover:bg-white/60 p-2 animate-caret-blink" />
+            ) :
+            !listening ? (
+              <MdCall
+                disabled
+                className="text-[42px] rounded-full bg-white/50 text-white cursor-pointer hover:bg-white/60 p-2" />
+            ) : (
+              <MdStop className="text-[42px] rounded-full bg-red-500 text-white cursor-pointer p-2" />
+            )}
         </button>
 
         {/* Chat Input */}
