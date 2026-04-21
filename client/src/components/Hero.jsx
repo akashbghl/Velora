@@ -23,7 +23,7 @@ function Hero() {
                 loop
                 muted
             />
-            <div className="absolute inset-0 w-full h-full bg-black opacity-95 pointer-events-none" />
+            <div className="absolute inset-0 w-full h-full bg-black opacity-90 pointer-events-none" />
             <div className="max-md:text-xl absolute inset-0 flex flex-col items-center mt-[20vh] w-full h-full">
                 <h1 className="text-white font-bold text-[80px] text-center white-glow-shadow custom-font">Your AI Friend</h1>
                 <p className='text-white font-bold text-[70px] text-center white-glow-shadow mt-[-30px] custom-font'>Who Cares</p>
